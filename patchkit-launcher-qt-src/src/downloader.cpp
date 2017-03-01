@@ -7,6 +7,7 @@
 
 #include "logger.h"
 #include "timeoutexception.h"
+#include "config.h"
 
 Downloader::Downloader(QNetworkAccessManager* t_dataSource, CancellationToken& t_cancellationToken)
     : m_remoteDataSource(t_dataSource)
@@ -14,14 +15,14 @@ Downloader::Downloader(QNetworkAccessManager* t_dataSource, CancellationToken& t
 {
 }
 
-QByteArray Downloader::downloadFile(const QString& t_urlPath, int t_requestTimeoutMsec)
+QByteArray Downloader::downloadFile(const QString& t_urlPath, int t_requestTimeoutMsec, int* t_replyStatusCode)
 {
     QNetworkRequest request(t_urlPath);
 
-    return downloadFile(request, t_requestTimeoutMsec);
+    return downloadFile(request, t_requestTimeoutMsec, t_replyStatusCode);
 }
 
-QByteArray Downloader::downloadFile(const QNetworkRequest& t_request, int t_requestTimeoutMsec)
+QByteArray Downloader::downloadFile(const QNetworkRequest& t_request, int t_requestTimeoutMsec, int* t_replyStatusCode)
 {
     TRemoteDataReply reply;
 
@@ -31,6 +32,18 @@ QByteArray Downloader::downloadFile(const QNetworkRequest& t_request, int t_requ
 
     waitForReply(reply, t_requestTimeoutMsec);
     validateReply(reply);
+
+    int replyStatusCode = getReplyStatusCode(reply);
+
+    if (t_replyStatusCode != nullptr)
+    {
+        *t_replyStatusCode = replyStatusCode;
+    }
+
+    if (replyStatusCode < 200 || replyStatusCode >= 300)
+    {
+        return QByteArray();
+    }
 
     waitForFileDownload(reply);
 
@@ -54,6 +67,38 @@ QString Downloader::downloadString(const QString& t_urlPath, int t_requestTimeou
     return reply->readAll();
 }
 
+bool Downloader::doesStatusCodeIndicateSuccess(int t_statusCode)
+{
+    return t_statusCode >= 200 && t_statusCode < 300;
+}
+
+bool Downloader::checkInternetConnection()
+{
+    QProcess proc;
+    QString exec = "ping";
+    QStringList params = {Config::pingTarget, Config::pingCountArg, "1"};
+
+    proc.start(exec, params);
+
+    if (!proc.waitForFinished())
+    {
+        return false;
+    }
+
+    if (proc.exitCode() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        logWarning("No internet connection.");
+        QString p_stdout = proc.readAllStandardOutput();
+        logInfo("Ping output was: %1", .arg(p_stdout));
+
+        return false;
+    }
+}
+
 void Downloader::abort()
 {
     emit terminate();
@@ -73,7 +118,7 @@ void Downloader::fetchReply(const QString& t_urlPath, TRemoteDataReply& t_reply)
 
 void Downloader::fetchReply(const QNetworkRequest& t_urlRequest, TRemoteDataReply& t_reply) const
 {
-    logInfo("Fetching network reply.");
+    logInfo("Fetching network reply - URL: %1.", .arg(t_urlRequest.url().toString()));
 
     if (!t_reply.isNull())
     {

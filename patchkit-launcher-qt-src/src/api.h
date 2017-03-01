@@ -25,6 +25,9 @@ public:
 
     QJsonDocument downloadContentSummary(const QString& t_resourceUrl, CancellationToken t_cancellationToken) const override;
 
+signals:
+    void connectionIssue(bool isSerious) const;
+
 private:
     QString downloadString(const QString& t_resourceUrl, QStringList& t_cacheApiUrls, bool t_extendedTimeout, CancellationToken t_cancellationToken) const;
     QString downloadString(const QString& t_resourceUrl, QStringList& t_cacheApiUrls, TValidator t_validator, bool t_extendedTimeout, CancellationToken t_cancellationToken) const;

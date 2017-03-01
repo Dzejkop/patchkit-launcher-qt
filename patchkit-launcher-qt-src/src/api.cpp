@@ -57,6 +57,11 @@ QString Api::downloadString(const QString& t_resourceUrl, QStringList& t_cacheAp
         if (!t_validator || (t_validator && t_validator(result)))
             return result;
     }
+    else
+    {
+        emit connectionIssue(t_extendedTimeout);
+    }
+
 
     for (int i = 0; i < t_cacheApiUrls.length(); i++)
     {
@@ -70,6 +75,10 @@ QString Api::downloadString(const QString& t_resourceUrl, QStringList& t_cacheAp
 
             t_cacheApiUrls.removeAt(i);
             i--;
+        }
+        else
+        {
+            emit connectionIssue(i >= 4 || t_extendedTimeout);
         }
     }
 

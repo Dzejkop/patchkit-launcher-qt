@@ -39,6 +39,9 @@ private:
 
     bool downloadWith(Downloader& downloader, QIODevice& t_dataTarget, const QStringList& t_contentUrls, CancellationToken t_cancellationToken);
 
+    bool downloadWithInternal(Downloader& t_downloader, QIODevice& t_dataTarget, const QString& t_url, CancellationToken t_cancellationToken);
+    bool saveData(QByteArray& t_data, QIODevice& t_dataTarget);
+
     static int parseVersionJson(const QString& t_json);
 
     static QString parsePatcherSecret(const QString& t_json);

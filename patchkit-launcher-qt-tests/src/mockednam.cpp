@@ -7,18 +7,33 @@
 
 MockedNAM::MockedNAM()
     : QNetworkAccessManager()
-    , m_shouldCorruptNext(false)
+    , m_repliesToCorrupt(0)
 {
 }
 
-void MockedNAM::push(QString t_url, QByteArray t_data, int t_replyDelay)
+void MockedNAM::push(QString t_url, QByteArray t_data, int t_replyDelay, int t_statusCode)
 {
-    m_ReplyDefinitions.insert(t_url, ReplyDefinition(t_data, t_replyDelay));
+    m_replyDefinitions.insert(t_url, ReplyDefinition(t_data, t_replyDelay, t_statusCode));
 }
 
-void MockedNAM::corruptNext()
+void MockedNAM::purge()
 {
-    m_shouldCorruptNext = true;
+    m_replyDefinitions.clear();
+}
+
+int MockedNAM::timesUrlAccessed(QString url) const
+{
+    return (*m_replyDefinitions.find(url)).timesAccesed;
+}
+
+void MockedNAM::corrupt()
+{
+    m_repliesToCorrupt = 1;
+}
+
+void MockedNAM::corrupt(int t_amount)
+{
+    m_repliesToCorrupt = t_amount;
 }
 
 QNetworkReply* MockedNAM::createRequest(QNetworkAccessManager::Operation /*op*/, const QNetworkRequest& request, QIODevice* /*outgoingData*/)
@@ -32,20 +47,21 @@ QNetworkReply* MockedNAM::createRequest(QNetworkAccessManager::Operation /*op*/,
         offset = parseRangeHeader(request.rawHeader("Range"));
     }
 
-    if (!m_ReplyDefinitions.contains(url))
+    if (!m_replyDefinitions.contains(url))
     {
         return nullptr;
     }
 
-    ReplyDefinition& def = *m_ReplyDefinitions.find(url);
+    ReplyDefinition& def = *m_replyDefinitions.find(url);
+    ++def.timesAccesed;
 
-    MockedNetworkReply* reply = new MockedNetworkReply(def.delay, def.data);
+    MockedNetworkReply* reply = new MockedNetworkReply(def.delay, def.data, def.statusCode);
 
     reply->setOffset(offset);
 
-    if (m_shouldCorruptNext)
+    if (m_repliesToCorrupt != 0)
     {
-        m_shouldCorruptNext = false;
+        --m_repliesToCorrupt;
         reply->corrupt();
     }
 

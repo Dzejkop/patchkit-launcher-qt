@@ -8,9 +8,10 @@
 #include <QTimer>
 #include <QtGlobal>
 
-MockedNetworkReply::MockedNetworkReply(int t_delayMsec, QByteArray t_data, QObject* t_parent)
+MockedNetworkReply::MockedNetworkReply(int t_delayMsec, QByteArray t_data, int t_statusCode, QObject* t_parent)
     : QNetworkReply(t_parent)
     , m_replyDelayMsec(t_delayMsec)
+    , m_statusCode(t_statusCode)
 {
     setContent(t_data);
 }
@@ -39,6 +40,7 @@ void MockedNetworkReply::launch()
     QTimer::singleShot( m_replyDelayMsec, this, [&]()
     {
         this->setFinished(true);
+        setAttribute(QNetworkRequest::HttpStatusCodeAttribute, QVariant::fromValue(m_statusCode));
         emit readyRead();
         emit finished();
     });

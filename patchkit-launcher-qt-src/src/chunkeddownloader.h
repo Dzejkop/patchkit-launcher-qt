@@ -46,11 +46,10 @@ public:
             QNetworkAccessManager* t_dataSource,
             const ContentSummary& t_contentSummary,
             HashFunc t_hashingStrategy,
-            int t_staleDownloadTimeoutMsec,
             CancellationToken t_cancellationToken
             );
 
-    QByteArray downloadFile(const QString& t_urlPath, int t_requestTimeoutMsec) override;
+    QByteArray downloadFile(const QString& t_urlPath, int t_requestTimeoutMsec, int* t_replyStatusCode = nullptr) override;
 
 public slots:
     virtual void abort() override;
@@ -59,8 +58,6 @@ protected slots:
     virtual void onDownloadProgressChanged(const TByteCount& t_bytesDownloaded, const TByteCount& t_totalBytes) override;
 
 private:
-    int                     m_staleTimeoutMsec;
-
     bool                    m_running;
 
     QVector<QByteArray>     m_chunks;

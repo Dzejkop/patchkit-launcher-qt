@@ -60,7 +60,7 @@ ContentSummary::ContentSummary(const QJsonDocument& t_document)
         return;
     }
 
-    QJsonObject& doc_object = t_document.object();
+    QJsonObject doc_object = t_document.object();
 
     if (!doc_object.contains(encryptionMethodToken))
     {

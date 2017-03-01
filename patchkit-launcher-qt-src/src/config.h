@@ -29,6 +29,11 @@ public:
 
     const static int chunkedDownloadStaleTimeoutMsec;
 
+    const static int timeBetweenContentUrlsIterations;
+
     const static QString mainApiUrl;
     const static QStringList cacheApiUrls;
+
+    const static QString pingTarget;
+    const static QString pingCountArg;
 };

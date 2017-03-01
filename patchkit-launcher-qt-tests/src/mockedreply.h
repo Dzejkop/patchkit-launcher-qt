@@ -13,7 +13,7 @@ class MockedNetworkReply : public QNetworkReply
     Q_OBJECT
 
 public:
-    MockedNetworkReply(int t_delayMsec, QByteArray t_data, QObject* parent = nullptr);
+    MockedNetworkReply(int t_delayMsec, QByteArray t_data, int t_statusCode, QObject* parent = nullptr);
 
     void setContent(const QString& m_content);
     void setContent(const QByteArray& m_content);
@@ -34,6 +34,7 @@ private:
     QByteArray m_content;
     qint64 m_contentOffset;
 
+    int m_statusCode;
     int m_replyDelayMsec;
 };
 

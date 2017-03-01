@@ -6,10 +6,12 @@
 #include "launcherworker.h"
 
 #include <QtMath>
+#include <QMessageBox>
 
 #include "logger.h"
 #include "locations.h"
 #include "fatalexception.h"
+#include "downloader.h"
 
 #if defined(Q_OS_WIN)
 #include <Windows.h>
@@ -36,7 +38,7 @@ void LauncherWorker::run()
         runWithDataFromFile();
 
         m_result = SUCCESS;
-        logInfo("Launcher has succeed.");
+        logInfo("Launcher has succeeded.");
     }
     catch (CancelledException&)
     {
